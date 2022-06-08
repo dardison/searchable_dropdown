@@ -369,14 +369,15 @@ class SearchableDropdown<T> extends StatefulWidget {
 class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   List<int> selectedItems;
   PointerThisPlease<bool> displayMenu = PointerThisPlease<bool>(false);
+  bool confirm = false;
 
   TextStyle get _textStyle =>
       widget.style ??
       (_enabled && !(widget.readOnly ?? false)
-          ? Theme.of(context).textTheme.subhead
+          ? Theme.of(context).textTheme.subtitle1
           : Theme.of(context)
               .textTheme
-              .subhead
+              .subtitle1
               .copyWith(color: _disabledIconColor));
   bool get _enabled =>
       widget.items != null &&
@@ -485,14 +486,15 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       displayMenu: displayMenu,
       menuConstraints: widget.menuConstraints,
       menuBackgroundColor: widget.menuBackgroundColor,
-      callOnPop: () {
+      callOnPop: (bool confirm) {
         if (!widget.dialogBox &&
             widget.onChanged != null &&
             selectedItems != null) {
-          widget.onChanged(selectedResult);
+          widget.onChanged(selectedResult, confirm);
         }
         setState(() {});
       },
+      setConfirm: (bool value) => confirm = value,
     ));
   }
 
@@ -518,7 +520,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       ));
     }
     Widget innerItemsWidget;
-    List<Widget> list = List<Widget>();
+    List<Widget> list = [];
     selectedItems?.forEach((item) {
       list.add(widget.selectedValueWidgetFn != null
           ? widget.selectedValueWidgetFn(widget.items[item].value)
@@ -549,7 +551,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                         return (menuWidget);
                       });
                   if (widget.onChanged != null && selectedItems != null) {
-                    widget.onChanged(selectedResult);
+                    widget.onChanged(selectedResult, confirm);
                   }
                 } else {
                   displayMenu.value = true;
@@ -671,7 +673,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   clearSelection() {
     selectedItems.clear();
     if (widget.onChanged != null) {
-      widget.onChanged(selectedResult);
+      widget.onChanged(selectedResult, false);
     }
     if (widget.onClear != null) {
       widget.onClear();
@@ -696,6 +698,7 @@ class DropdownDialog<T> extends StatefulWidget {
   final PointerThisPlease<bool> displayMenu;
   final BoxConstraints menuConstraints;
   final Function callOnPop;
+  final Function setConfirm;
   final Color menuBackgroundColor;
 
   DropdownDialog({
@@ -716,6 +719,7 @@ class DropdownDialog<T> extends StatefulWidget {
     this.menuConstraints,
     this.callOnPop,
     this.menuBackgroundColor,
+    this.setConfirm,
   })  : assert(items != null),
         super(key: key);
 
@@ -780,6 +784,11 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
 
   @override
   Widget build(BuildContext context) {
+    double _horizontalMargin = widget.dialogBox ? 10 : 4;
+    if (MediaQuery.of(context).size.width > 450){
+      _horizontalMargin = (MediaQuery.of(context).size.width - 450) / 2;
+    }
+
     return AnimatedContainer(
       padding: MediaQuery.of(context).viewInsets,
       duration: const Duration(milliseconds: 300),
@@ -787,7 +796,7 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
         color: widget.menuBackgroundColor,
         margin: EdgeInsets.symmetric(
             vertical: widget.dialogBox ? 10 : 5,
-            horizontal: widget.dialogBox ? 10 : 4),
+                  horizontal: _horizontalMargin),
         child: new Container(
           constraints: widget.menuConstraints,
           padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
@@ -796,7 +805,8 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              titleBar(),
+                    //titleBar(),
+                    selectAll(),
               searchBar(),
               list(),
               closeButtonWrapper(),
@@ -834,14 +844,14 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
             ? prepareWidget(widget.doneButton,
                 parameter: selectedResult,
                 context: context, stringToWidgetFunction: (string) {
-                return (FlatButton.icon(
+                return (TextButton.icon(
                     onPressed: !valid
                         ? null
                         : () {
-                            pop();
+                            pop(false);
                             setState(() {});
                           },
-                    icon: Icon(Icons.close),
+                    icon: Icon(Icons.arrow_back_rounded),
                     label: Text(string)));
               })
             : SizedBox.shrink();
@@ -862,6 +872,30 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
               children: <Widget>[doneButtonWidget, validatorOutputWidget],
             ),
           );
+  }
+
+
+  Widget selectAll() {
+    Widget doneButtonWidget = TextButton.icon(
+      onPressed: !valid
+          ? null
+          : () {
+              if (widget.selectedItems.length == shownIndexes.length){  
+                widget.selectedItems.clear();
+              }else{
+                widget.selectedItems.clear();
+                widget.selectedItems.addAll(shownIndexes);
+              }
+              setState(() {});
+            },
+      icon: Icon(Icons.done_all),
+      label: Text('Seleccionar Todo'));
+
+    return Container(
+      child: Column(
+        children: <Widget>[doneButtonWidget],
+      ),
+    );
   }
 
   Widget searchBar() {
@@ -924,13 +958,16 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
     );
   }
 
-  pop() {
+  pop(bool confirm) {
+    if(widget.setConfirm != null){
+      widget.setConfirm(confirm);
+    }
     if (widget.dialogBox) {
       Navigator.pop(context);
     } else {
       widget.displayMenu.value = false;
       if (widget.callOnPop != null) {
-        widget.callOnPop();
+        widget.callOnPop(confirm);
       }
     }
   }
@@ -955,7 +992,7 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
                   widget.selectedItems.clear();
                   widget.selectedItems.add(shownIndexes[index]);
                   if (widget.doneButton == null) {
-                    pop();
+                    pop(false);
                   } else {
                     setState(() {});
                   }
@@ -995,9 +1032,9 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                FlatButton(
+                TextButton(
                   onPressed: () {
-                    pop();
+                    pop(true);
                   },
                   child: Container(
                       constraints: BoxConstraints(
