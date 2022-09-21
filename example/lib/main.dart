@@ -217,7 +217,7 @@ class _MyAppState extends State<MyApp> {
                   ))));
         },
         doneButton: (selectedItemsDone, doneContext) {
-          return (RaisedButton(
+          return (ElevatedButton(
               onPressed: () {
                 Navigator.pop(doneContext);
                 setState(() {});
@@ -278,7 +278,7 @@ class _MyAppState extends State<MyApp> {
           });
         },
         doneButton: (selectedItemsDone, doneContext) {
-          return (RaisedButton(
+          return (ElevatedButton(
               onPressed: selectedItemsDone.length != 3
                   ? null
                   : () {
@@ -337,7 +337,7 @@ class _MyAppState extends State<MyApp> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                   onPressed: () {
                     setState(() {
                       selectedItems.clear();
@@ -346,7 +346,7 @@ class _MyAppState extends State<MyApp> {
                     });
                   },
                   child: Text("Select all")),
-              RaisedButton(
+              ElevatedButton(
                   onPressed: () {
                     setState(() {
                       selectedItems.clear();
@@ -375,7 +375,7 @@ class _MyAppState extends State<MyApp> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                   onPressed: () {
                     setState(() {
                       selectedItems.clear();
@@ -384,7 +384,7 @@ class _MyAppState extends State<MyApp> {
                     });
                   },
                   child: Text("Select all")),
-              RaisedButton(
+              ElevatedButton(
                   onPressed: () {
                     setState(() {
                       selectedItems.clear();
@@ -518,7 +518,7 @@ class _MyAppState extends State<MyApp> {
             },
             isExpanded: true,
           ),
-          FlatButton(
+          TextButton(
             child: Text("Select $preselectedValue"),
             onPressed: () {
               setState(() {
