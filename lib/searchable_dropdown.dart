@@ -546,7 +546,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                 if (widget.dialogBox) {
                   await showDialog(
                       context: context,
-                      barrierDismissible: true,
+                      barrierDismissible: false,
                       builder: (context) {
                         return (menuWidget);
                       });
@@ -691,6 +691,7 @@ class DropdownDialog<T> extends StatefulWidget {
   final Function searchFn;
   final bool multipleSelection;
   final List<int> selectedItems;
+  final List<int> originalSelectedItems;
   final Function displayItem;
   final dynamic doneButton;
   final Function validator;
@@ -720,7 +721,7 @@ class DropdownDialog<T> extends StatefulWidget {
     this.callOnPop,
     this.menuBackgroundColor,
     this.setConfirm,
-  })  : assert(items != null),
+  })  : assert(items != null), originalSelectedItems = selectedItems==null?null:List<int>.from(selectedItems),
         super(key: key);
 
   _DropdownDialogState<T> createState() => new _DropdownDialogState<T>();
@@ -728,8 +729,7 @@ class DropdownDialog<T> extends StatefulWidget {
 
 class _DropdownDialogState<T> extends State<DropdownDialog> {
   TextEditingController txtSearch = new TextEditingController();
-  TextStyle defaultButtonStyle =
-      new TextStyle(fontSize: 16, fontWeight: FontWeight.w500);
+  TextStyle defaultButtonStyle = new TextStyle(fontSize: 16, fontWeight: FontWeight.w500);
   List<int> shownIndexes = [];
   Function searchFn;
 
@@ -795,8 +795,8 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
       child: new Card(
         color: widget.menuBackgroundColor,
         margin: EdgeInsets.symmetric(
-            vertical: widget.dialogBox ? 10 : 5,
-                  horizontal: _horizontalMargin),
+          vertical: widget.dialogBox ? 10 : 5,
+          horizontal: _horizontalMargin),
         child: new Container(
           constraints: widget.menuConstraints,
           padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
@@ -804,12 +804,32 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+            children: [
                     //titleBar(),
-                    selectAll(),
+              selectAll(),
               searchBar(),
               list(),
-              closeButtonWrapper(),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                TextButton(
+                  onPressed: () {
+                    widget.selectedItems.clear();
+                    if (widget.originalSelectedItems != null && widget.originalSelectedItems.isNotEmpty){
+                      widget.originalSelectedItems.forEach((element) {
+                        widget.selectedItems.add(element);
+                      });
+                    }
+                    pop(false);
+                  },
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
+                    child: Text(
+                      'Cancelar',
+                      style: defaultButtonStyle,
+                      overflow: TextOverflow.ellipsis,
+                  )),
+                ),
+                closeButtonWrapper()
+              ]),
             ],
           ),
         ),
@@ -1027,7 +1047,7 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
   Widget closeButtonWrapper() {
     return (prepareWidget(widget.closeButton, parameter: selectedResult,
             stringToWidgetFunction: (string) {
-          return (Container(
+          return Container(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -1047,7 +1067,7 @@ class _DropdownDialogState<T> extends State<DropdownDialog> {
                 )
               ],
             ),
-          ));
+          );
         }) ??
         SizedBox.shrink());
   }
