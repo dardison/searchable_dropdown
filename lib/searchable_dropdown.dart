@@ -52,7 +52,7 @@ Widget? prepareWidget(dynamic object,
 }
 
 class SearchableDropdown<T> extends StatefulWidget {
-  final List<DropdownMenuItem<T>> items;
+  final List<DropdownMenuItem<T>>? items;
   final Function? onChanged;
   final T? value;
   final TextStyle? style;
@@ -65,7 +65,7 @@ class SearchableDropdown<T> extends StatefulWidget {
   final dynamic label;
   final dynamic closeButton;
   final bool displayClearIcon;
-  final Icon clearIcon;
+  final Icon? clearIcon;
   final Color? iconEnabledColor;
   final Color? iconDisabledColor;
   final double iconSize;
@@ -77,11 +77,11 @@ class SearchableDropdown<T> extends StatefulWidget {
   final TextInputType keyboardType;
   final Function? validator;
   final bool multipleSelection;
-  final List<int> selectedItems;
+  final List<int>? selectedItems;
   final Function? displayItem;
   final bool? dialogBox;
   final BoxConstraints? menuConstraints;
-  final bool readOnly;
+  final bool? readOnly;
   final Color? menuBackgroundColor;
 
   /// Search choices Widget with a single choice that opens a dialog or a menu to let the user do the selection conveniently with a search.
@@ -381,7 +381,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
               .copyWith(color: _disabledIconColor));
   bool get _enabled =>
       widget.items != null &&
-      widget.items.isNotEmpty &&
+      widget.items!.isNotEmpty &&
       widget.onChanged != null;
 
   Color? get _enabledIconColor {
@@ -432,12 +432,12 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
     return (widget.multipleSelection
         ? selectedItems
         : selectedItems?.isNotEmpty ?? false
-            ? widget.items[selectedItems!.first]?.value
+            ? widget.items![selectedItems!.first].value
             : null);
   }
 
-  int indexFromValue(T? value) {
-    return (widget.items.indexWhere((item) {
+  int? indexFromValue(T? value) {
+    return (widget.items!.indexWhere((item) {
       return (item.value == value);
     }));
   }
@@ -455,7 +455,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
     if (widget.multipleSelection) {
       selectedItems = List<int>.from(widget.selectedItems ?? []);
     } else if (widget.value != null) {
-      int i = indexFromValue(widget.value);
+      int? i = indexFromValue(widget.value);
       if (i != null && i != -1) {
         selectedItems = [i];
       }
@@ -471,7 +471,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
 
   Widget get menuWidget {
     return (DropdownDialog(
-      items: widget.items,
+      items: widget.items!,
       hint: prepareWidget(widget.searchHint),
       isCaseSensitiveSearch: widget.isCaseSensitiveSearch,
       closeButton: widget.closeButton,
@@ -501,7 +501,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> items =
-        _enabled ? List<Widget>.from(widget.items) : <Widget>[];
+        _enabled ? List<Widget>.from(widget.items!) : <Widget>[];
     int? hintIndex;
     if (widget.hint != null ||
         (!_enabled && prepareWidget(widget.disabledHint) != null)) {
@@ -523,7 +523,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
     List<Widget?> list = [];
     selectedItems?.forEach((item) {
       list.add(widget.selectedValueWidgetFn != null
-          ? widget.selectedValueWidgetFn!(widget.items[item].value)
+          ? widget.selectedValueWidgetFn!(widget.items![item].value)
           : items[item]);
     });
     if (list.isEmpty && hintIndex != null) {
@@ -586,7 +586,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
             !widget.displayClearIcon
                 ? SizedBox()
                 : InkWell(
-                    onTap: hasSelection && _enabled && !widget.readOnly
+                    onTap: hasSelection && _enabled && !widget.readOnly!
                         ? () {
                             clearSelection();
                           }
@@ -600,7 +600,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T?>> {
                           IconTheme(
                             data: IconThemeData(
                               color:
-                                  hasSelection && _enabled && !widget.readOnly
+                                  hasSelection && _enabled && !widget.readOnly!
                                       ? _enabledIconColor
                                       : _disabledIconColor,
                               size: widget.iconSize,

@@ -522,7 +522,7 @@ void main() {
       await tester.tap(clearButtonFinder);
       await tester.pump();
       expect(nothingSelectedFinder, findsNWidgets(1), reason: "No selection");
-      expect(selectedItems?.length ?? 0, 0, reason: "selectedValue cleared");
+      expect(selectedItems.length, 0, reason: "selectedValue cleared");
     },
     skip: false,
   );
